@@ -80,7 +80,7 @@ export default function App() {
 
   const close = () => {
     if (dirty && !window.confirm('Close this document? Your latest changes may still be saving.')) return;
-    active?.pdf.destroy();
+    void active?.pdf.cleanup();
     setActive(null);
     clear();
   };

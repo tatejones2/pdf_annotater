@@ -127,11 +127,15 @@ export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
     canvas.style.height = `${viewport.height}px`;
     const context = canvas.getContext('2d');
     if (!context) return;
-    const renderTask = page.render({
+    const renderParameters = {
+      canvas,
       canvasContext: context,
       viewport,
       transform: ratio === 1 ? undefined : [ratio, 0, 0, ratio, 0, 0],
-    });
+    };
+    const renderTask = page.render(
+      renderParameters as Parameters<PDFPageProxy['render']>[0],
+    );
     return () => renderTask.cancel();
   }, [page, zoom]);
 

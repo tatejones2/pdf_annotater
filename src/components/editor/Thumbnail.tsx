@@ -10,7 +10,10 @@ export function Thumbnail({ page, active, onClick, index }: { page: PDFPageProxy
     if (!canvas || !context) return;
     canvas.width = viewport.width;
     canvas.height = viewport.height;
-    const task = page.render({ canvasContext: context, viewport });
+    const renderParameters = { canvas, canvasContext: context, viewport };
+    const task = page.render(
+      renderParameters as Parameters<PDFPageProxy['render']>[0],
+    );
     return () => task.cancel();
   }, [page]);
   return (
