@@ -1,0 +1,9 @@
+{
+  "name": "Paperwood",
+  "short_name": "Paperwood",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ede7dc",
+  "theme_color": "#2f6f68",
+  "icons": []
+}
