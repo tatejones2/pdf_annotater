@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PDFPageProxy } from '../../lib/pdfjs';
 import { domPointToNormalized, rectFromPoints } from '../../lib/coordinates';
 import type { Annotation, NormalizedPoint } from '../../types/annotations';
@@ -107,7 +107,7 @@ function AnnotationView({ annotation }: { annotation: Annotation }) {
 export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ width: 612, height: 792 });
+  const viewport = useMemo(() => page.getViewport({ scale: zoom }), [page, zoom]);
   const [start, setStart] = useState<NormalizedPoint | null>(null);
   const [penPoints, setPenPoints] = useState<NormalizedPoint[]>([]);
   const annotations = useEditorStore((state) => state.annotations.filter((item) => item.pageIndex === pageIndex));
@@ -116,8 +116,6 @@ export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
   const select = useEditorStore((state) => state.select);
 
   useEffect(() => {
-    const viewport = page.getViewport({ scale: zoom });
-    setSize({ width: viewport.width, height: viewport.height });
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ratio = Math.min(window.devicePixelRatio || 1, 2);
@@ -137,7 +135,7 @@ export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
       renderParameters as Parameters<PDFPageProxy['render']>[0],
     );
     return () => renderTask.cancel();
-  }, [page, zoom]);
+  }, [page, viewport]);
 
   useEffect(() => {
     const node = containerRef.current;
@@ -197,7 +195,7 @@ export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
       <div
         ref={containerRef}
         className={`pdf-page tool-${tool}`}
-        style={{ width: size.width, height: size.height }}
+        style={{ width: viewport.width, height: viewport.height }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
