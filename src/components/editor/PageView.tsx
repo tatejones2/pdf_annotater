@@ -86,10 +86,16 @@ function AnnotationView({ annotation }: { annotation: Annotation }) {
       {(annotation.type === 'text' || annotation.type === 'sticky-note') && (
         <textarea
           aria-label={annotation.type === 'text' ? 'Annotation text' : 'Sticky note text'}
+          autoFocus={selected && !annotation.locked}
+          readOnly={annotation.locked}
           value={annotation.text ?? ''}
           placeholder={annotation.type === 'text' ? 'Type here…' : 'Note…'}
           style={{ color: annotation.color, fontSize: annotation.fontSize ?? 14 }}
-          onPointerDown={(event) => event.stopPropagation()}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            select(annotation.id);
+          }}
+          onFocus={() => select(annotation.id)}
           onChange={(event) => update(annotation.id, { text: event.target.value })}
         />
       )}
@@ -120,6 +126,7 @@ export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
   const tool = useEditorStore((state) => state.activeTool);
   const add = useEditorStore((state) => state.add);
   const select = useEditorStore((state) => state.select);
+  const setTool = useEditorStore((state) => state.setTool);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -219,8 +226,10 @@ export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
       if (penPoints.length > 1) add('pen', pageIndex, { x: 0, y: 0, width: 1, height: 1 }, { points: penPoints });
     } else if (tool === 'text') {
       add('text', pageIndex, { x: start.x, y: start.y, width: 0.24, height: 0.1 }, { text: '', fontSize: 15, opacity: 1 });
+      setTool('select');
     } else if (tool === 'sticky-note') {
       add('sticky-note', pageIndex, { x: start.x, y: start.y, width: 0.18, height: 0.13 }, { text: '', opacity: 1 });
+      setTool('select');
     } else {
       const rect = rectFromPoints(start, end);
       const fallback = { ...rect, width: Math.max(rect.width, 0.03), height: Math.max(rect.height, 0.015) };
