@@ -107,10 +107,16 @@ function AnnotationView({ annotation }: { annotation: Annotation }) {
 export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const renderTaskRef = useRef<ReturnType<PDFPageProxy['render']> | null>(null);
+  const [renderError, setRenderError] = useState<string | null>(null);
   const viewport = useMemo(() => page.getViewport({ scale: zoom }), [page, zoom]);
   const [start, setStart] = useState<NormalizedPoint | null>(null);
   const [penPoints, setPenPoints] = useState<NormalizedPoint[]>([]);
-  const annotations = useEditorStore((state) => state.annotations.filter((item) => item.pageIndex === pageIndex));
+  const allAnnotations = useEditorStore((state) => state.annotations);
+  const annotations = useMemo(
+    () => allAnnotations.filter((item) => item.pageIndex === pageIndex),
+    [allAnnotations, pageIndex],
+  );
   const tool = useEditorStore((state) => state.activeTool);
   const add = useEditorStore((state) => state.add);
   const select = useEditorStore((state) => state.select);
@@ -118,23 +124,58 @@ export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ratio = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.floor(viewport.width * ratio);
-    canvas.height = Math.floor(viewport.height * ratio);
-    canvas.style.width = `${viewport.width}px`;
-    canvas.style.height = `${viewport.height}px`;
-    const context = canvas.getContext('2d');
-    if (!context) return;
-    const renderParameters = {
-      canvas,
-      canvasContext: context,
-      viewport,
-      transform: ratio === 1 ? undefined : [ratio, 0, 0, ratio, 0, 0],
+    let disposed = false;
+
+    const render = async () => {
+      const previousTask = renderTaskRef.current;
+      if (previousTask) {
+        previousTask.cancel();
+        try {
+          await previousTask.promise;
+        } catch {
+          // Cancellation is expected when zoom changes or React remounts effects.
+        }
+      }
+      if (disposed) return;
+
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(viewport.width * ratio);
+      canvas.height = Math.floor(viewport.height * ratio);
+      canvas.style.width = `${viewport.width}px`;
+      canvas.style.height = `${viewport.height}px`;
+      const context = canvas.getContext('2d');
+      if (!context) {
+        setRenderError('Canvas rendering is unavailable in this browser.');
+        return;
+      }
+      const renderParameters = {
+        canvas,
+        canvasContext: context,
+        viewport,
+        transform: ratio === 1 ? undefined : [ratio, 0, 0, ratio, 0, 0],
+      };
+      const renderTask = page.render(
+        renderParameters as Parameters<PDFPageProxy['render']>[0],
+      );
+      renderTaskRef.current = renderTask;
+      try {
+        await renderTask.promise;
+        if (!disposed) setRenderError(null);
+      } catch (error) {
+        if (!disposed && !(error instanceof Error && error.name === 'RenderingCancelledException')) {
+          console.error('Unable to render PDF page', error);
+          setRenderError('This page could not be rendered. Try reopening the PDF.');
+        }
+      } finally {
+        if (renderTaskRef.current === renderTask) renderTaskRef.current = null;
+      }
     };
-    const renderTask = page.render(
-      renderParameters as Parameters<PDFPageProxy['render']>[0],
-    );
-    return () => renderTask.cancel();
+
+    void render();
+    return () => {
+      disposed = true;
+      renderTaskRef.current?.cancel();
+    };
   }, [page, viewport]);
 
   useEffect(() => {
@@ -201,6 +242,7 @@ export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
         onPointerUp={onPointerUp}
       >
         <canvas ref={canvasRef} />
+        {renderError && <div className="page-render-error" role="alert">{renderError}</div>}
         <div className="annotation-layer">
           {annotations.map((annotation) => <AnnotationView key={annotation.id} annotation={annotation} />)}
           {tool === 'pen' && penPoints.length > 1 && (

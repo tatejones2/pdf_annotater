@@ -124,6 +124,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .page-label { position: absolute; left: -2px; top: -22px; font-size: 9px; font-weight: 800; color: #6c655b; text-transform: uppercase; letter-spacing: .08em; }
 .pdf-page { background: white; box-shadow: 0 9px 28px rgba(52, 45, 37, .18); position: relative; user-select: none; touch-action: none; }
 .pdf-page canvas { display: block; position: absolute; inset: 0; }
+.page-render-error { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; padding: 40px; background: #fffaf1; color: var(--red); text-align: center; font-size: 13px; }
 .annotation-layer { position: absolute; inset: 0; overflow: hidden; }
 .annotation { position: absolute; cursor: pointer; min-width: 3px; min-height: 3px; }
 .tool-select .annotation { pointer-events: auto; }.pdf-page:not(.tool-select) .annotation { pointer-events: none; }
