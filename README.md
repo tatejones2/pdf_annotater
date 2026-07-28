@@ -25,6 +25,8 @@ Add final product screenshots here after deployment.
 
 React, strict TypeScript, Vite, PDF.js, pdf-lib, Zustand, Dexie, Zod, Lucide, Vitest, and Playwright.
 
+Paperwood bundles the Caveat handwriting typeface for its Signature text style. Caveat is distributed under the SIL Open Font License 1.1; its license is included at `src/assets/fonts/Caveat-OFL.txt`.
+
 ## Development
 
 Requires Node 22 and npm.

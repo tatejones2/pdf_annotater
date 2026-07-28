@@ -78,6 +78,7 @@ describe('PageView rendering', () => {
     } as unknown as PDFPageProxy;
     useEditorStore.getState().clear();
     useEditorStore.getState().setTool('text');
+    useEditorStore.getState().setStyle({ textFont: 'signature' });
 
     const { container } = render(
       <PageView page={page} pageIndex={0} zoom={1} onVisible={() => undefined} />,
@@ -94,5 +95,6 @@ describe('PageView rendering', () => {
     expect(useEditorStore.getState().annotations[0]?.text).toBe('Typed annotation');
     expect(useEditorStore.getState().annotations[0]?.color).toBe('#25231f');
     expect(useEditorStore.getState().annotations[0]?.fillColor).toBeNull();
+    expect(useEditorStore.getState().annotations[0]?.fontFamily).toBe('signature');
   });
 });

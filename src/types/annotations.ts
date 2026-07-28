@@ -36,6 +36,7 @@ export type Annotation = {
   opacity: number;
   width: number;
   fontSize?: number;
+  fontFamily?: 'sans' | 'signature';
   locked: boolean;
   zIndex: number;
   createdAt: string;
@@ -64,6 +65,7 @@ export const annotationSchema: z.ZodType<Annotation> = z.object({
   opacity: z.number().min(0).max(1),
   width: z.number().positive(),
   fontSize: z.number().positive().optional(),
+  fontFamily: z.enum(['sans', 'signature']).optional(),
   locked: z.boolean(),
   zIndex: z.number(),
   createdAt: z.string(),

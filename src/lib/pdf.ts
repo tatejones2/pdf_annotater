@@ -1,6 +1,8 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
+import { PDFDocument, rgb, StandardFonts, type PDFFont } from 'pdf-lib';
 import type { Annotation } from '../types/annotations';
 import { normalizedRectToPdf } from './coordinates';
+import caveatFontUrl from '../assets/fonts/Caveat-Variable.ttf?url';
 
 const hex = (value: string) => {
   const clean = value.replace('#', '');
@@ -11,6 +13,15 @@ const hex = (value: string) => {
 export async function exportAnnotatedPdf(bytes: Uint8Array, annotations: Annotation[]) {
   const document = await PDFDocument.load(bytes);
   const font = await document.embedFont(StandardFonts.Helvetica);
+  let signatureFont: PDFFont | undefined;
+  if (annotations.some((annotation) => annotation.type === 'text' && annotation.fontFamily === 'signature')) {
+    document.registerFontkit(fontkit);
+    const signatureFontBytes = await fetch(caveatFontUrl).then((response) => {
+      if (!response.ok) throw new Error('Unable to load the bundled signature font.');
+      return response.arrayBuffer();
+    });
+    signatureFont = await document.embedFont(signatureFontBytes, { subset: true });
+  }
   const pages = document.getPages();
 
   annotations
@@ -33,7 +44,7 @@ export async function exportAnnotatedPdf(bytes: Uint8Array, annotations: Annotat
           y: rect.y + rect.height - (annotation.fontSize ?? 12),
           maxWidth: Math.max(20, rect.width - 8),
           size: annotation.fontSize ?? 12,
-          font,
+          font: annotation.fontFamily === 'signature' ? signatureFont ?? font : font,
           color,
           opacity: annotation.opacity,
           lineHeight: (annotation.fontSize ?? 12) * 1.2,

@@ -7,6 +7,7 @@ export function PropertiesBar() {
   const color = useEditorStore((state) => state.color);
   const opacity = useEditorStore((state) => state.opacity);
   const strokeWidth = useEditorStore((state) => state.strokeWidth);
+  const textFont = useEditorStore((state) => state.textFont);
   const setStyle = useEditorStore((state) => state.setStyle);
 
   if (tool === 'select') return null;
@@ -26,6 +27,25 @@ export function PropertiesBar() {
           />
         ))}
       </div>
+      {tool === 'text' && (
+        <div className="font-style-control" aria-label="Text style">
+          <span className="property-label">Style</span>
+          <button
+            className={textFont === 'sans' ? 'active' : ''}
+            aria-pressed={textFont === 'sans'}
+            onClick={() => setStyle({ textFont: 'sans' })}
+          >
+            Clean
+          </button>
+          <button
+            className={`signature-option ${textFont === 'signature' ? 'active' : ''}`}
+            aria-pressed={textFont === 'signature'}
+            onClick={() => setStyle({ textFont: 'signature' })}
+          >
+            Signature
+          </button>
+        </div>
+      )}
       <label>
         <span>Opacity</span>
         <input

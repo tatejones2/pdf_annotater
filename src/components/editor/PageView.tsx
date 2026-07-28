@@ -58,7 +58,7 @@ function AnnotationView({ annotation }: { annotation: Annotation }) {
     startRef.current = { point, rect: { ...annotation.rect, x: annotation.rect.x + dx, y: annotation.rect.y + dy } };
   };
 
-  const className = `annotation annotation-${annotation.type} ${selected ? 'selected' : ''} ${annotation.locked ? 'locked' : ''}`;
+  const className = `annotation annotation-${annotation.type} ${annotation.fontFamily === 'signature' ? 'font-signature' : 'font-sans'} ${selected ? 'selected' : ''} ${annotation.locked ? 'locked' : ''}`;
 
   if (annotation.type === 'pen' && annotation.points) {
     const path = annotation.points.map((point, index) => `${index ? 'L' : 'M'} ${point.x * 100} ${point.y * 100}`).join(' ');
@@ -127,6 +127,7 @@ export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
   const add = useEditorStore((state) => state.add);
   const select = useEditorStore((state) => state.select);
   const setTool = useEditorStore((state) => state.setTool);
+  const textFont = useEditorStore((state) => state.textFont);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -229,7 +230,14 @@ export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
         'text',
         pageIndex,
         { x: start.x, y: start.y, width: 0.3, height: 0.055 },
-        { text: '', color: '#25231f', fillColor: null, fontSize: 14, opacity: 1 },
+        {
+          text: '',
+          color: '#25231f',
+          fillColor: null,
+          fontFamily: textFont,
+          fontSize: textFont === 'signature' ? 20 : 14,
+          opacity: 1,
+        },
       );
       setTool('select');
     } else if (tool === 'sticky-note') {

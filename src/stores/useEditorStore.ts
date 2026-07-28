@@ -14,9 +14,10 @@ type EditorState = {
   fillColor: string;
   opacity: number;
   strokeWidth: number;
+  textFont: 'sans' | 'signature';
   dirty: boolean;
   setTool: (tool: Tool) => void;
-  setStyle: (style: Partial<Pick<EditorState, 'color' | 'fillColor' | 'opacity' | 'strokeWidth'>>) => void;
+  setStyle: (style: Partial<Pick<EditorState, 'color' | 'fillColor' | 'opacity' | 'strokeWidth' | 'textFont'>>) => void;
   add: (type: AnnotationType, pageIndex: number, rect: NormalizedRect, extra?: Partial<Annotation>) => string;
   update: (id: string, patch: Partial<Annotation>) => void;
   remove: (id: string) => void;
@@ -42,6 +43,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   fillColor: '#d0a43c',
   opacity: 0.55,
   strokeWidth: 3,
+  textFont: 'sans',
   dirty: false,
   setTool: (activeTool) => set({ activeTool }),
   setStyle: (style) => set(style),
