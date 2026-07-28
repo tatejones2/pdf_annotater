@@ -225,7 +225,12 @@ export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
     if (tool === 'pen') {
       if (penPoints.length > 1) add('pen', pageIndex, { x: 0, y: 0, width: 1, height: 1 }, { points: penPoints });
     } else if (tool === 'text') {
-      add('text', pageIndex, { x: start.x, y: start.y, width: 0.24, height: 0.1 }, { text: '', fontSize: 15, opacity: 1 });
+      add(
+        'text',
+        pageIndex,
+        { x: start.x, y: start.y, width: 0.3, height: 0.055 },
+        { text: '', color: '#25231f', fillColor: null, fontSize: 14, opacity: 1 },
+      );
       setTool('select');
     } else if (tool === 'sticky-note') {
       add('sticky-note', pageIndex, { x: start.x, y: start.y, width: 0.18, height: 0.13 }, { text: '', opacity: 1 });

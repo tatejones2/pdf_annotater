@@ -92,5 +92,7 @@ describe('PageView rendering', () => {
     expect(useEditorStore.getState().activeTool).toBe('select');
     fireEvent.change(editor, { target: { value: 'Typed annotation' } });
     expect(useEditorStore.getState().annotations[0]?.text).toBe('Typed annotation');
+    expect(useEditorStore.getState().annotations[0]?.color).toBe('#25231f');
+    expect(useEditorStore.getState().annotations[0]?.fillColor).toBeNull();
   });
 });

@@ -142,7 +142,17 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       dirty: true,
     });
   },
-  load: (annotations) => set({ annotations, past: [], future: [], selectedId: null, dirty: false }),
+  load: (annotations) => set({
+    annotations: annotations.map((annotation) =>
+      annotation.type === 'text'
+        ? { ...annotation, color: '#25231f', fillColor: null, opacity: 1 }
+        : annotation,
+    ),
+    past: [],
+    future: [],
+    selectedId: null,
+    dirty: false,
+  }),
   markSaved: () => set({ dirty: false }),
   clear: () => set({ annotations: [], past: [], future: [], selectedId: null, dirty: false }),
 }));
