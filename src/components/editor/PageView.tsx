@@ -172,9 +172,12 @@ function AnnotationView({ annotation }: { annotation: Annotation }) {
           style={{
             color: annotation.color,
             fontSize: annotation.fontSize ?? 14,
-            fontWeight: annotation.bold ? 700 : 400,
+            fontWeight: annotation.bold ? 900 : 400,
             fontStyle: annotation.italic ? 'italic' : 'normal',
             textDecoration: annotation.underlineText ? 'underline' : 'none',
+            textShadow: annotation.bold
+              ? '0.35px 0 currentColor, -0.35px 0 currentColor'
+              : 'none',
           }}
           onPointerDown={(event) => {
             event.stopPropagation();

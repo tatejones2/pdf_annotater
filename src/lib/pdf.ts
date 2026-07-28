@@ -65,8 +65,16 @@ export async function exportAnnotatedPdf(bytes: Uint8Array, annotations: Annotat
           lineHeight: textSize * 1.2,
         };
         page.drawText(text.slice(0, 600), drawOptions);
-        if (annotation.fontFamily === 'signature' && annotation.bold) {
-          page.drawText(text.slice(0, 600), { ...drawOptions, x: textX + 0.45 });
+        if (annotation.bold) {
+          const boldOffset = annotation.fontFamily === 'signature' ? 0.55 : 0.3;
+          page.drawText(text.slice(0, 600), {
+            ...drawOptions,
+            x: textX + boldOffset,
+          });
+          page.drawText(text.slice(0, 600), {
+            ...drawOptions,
+            x: textX - boldOffset,
+          });
         }
         if (annotation.underlineText) {
           const firstLine = text.split('\n')[0] ?? '';
