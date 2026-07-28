@@ -2,7 +2,7 @@ import fontkit from '@pdf-lib/fontkit';
 import { PDFDocument, rgb, StandardFonts, type PDFFont } from 'pdf-lib';
 import type { Annotation } from '../types/annotations';
 import { normalizedRectToPdf } from './coordinates';
-import caveatFontUrl from '../assets/fonts/Caveat-Variable.ttf?url';
+import signatureFontUrl from '../assets/fonts/GreatVibes-Regular.ttf?url';
 
 const hex = (value: string) => {
   const clean = value.replace('#', '');
@@ -16,7 +16,7 @@ export async function exportAnnotatedPdf(bytes: Uint8Array, annotations: Annotat
   let signatureFont: PDFFont | undefined;
   if (annotations.some((annotation) => annotation.type === 'text' && annotation.fontFamily === 'signature')) {
     document.registerFontkit(fontkit);
-    const signatureFontBytes = await fetch(caveatFontUrl).then((response) => {
+    const signatureFontBytes = await fetch(signatureFontUrl).then((response) => {
       if (!response.ok) throw new Error('Unable to load the bundled signature font.');
       return response.arrayBuffer();
     });

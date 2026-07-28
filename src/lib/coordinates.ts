@@ -32,3 +32,24 @@ export function rectFromPoints(a: NormalizedPoint, b: NormalizedPoint): Normaliz
     height: Math.abs(b.y - a.y),
   };
 }
+
+export type ResizeHandle = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw';
+
+export function resizeNormalizedRect(
+  rect: NormalizedRect,
+  point: NormalizedPoint,
+  handle: ResizeHandle,
+  minimumSize = 0.015,
+): NormalizedRect {
+  let left = rect.x;
+  let top = rect.y;
+  let right = rect.x + rect.width;
+  let bottom = rect.y + rect.height;
+
+  if (handle.includes('w')) left = Math.max(0, Math.min(point.x, right - minimumSize));
+  if (handle.includes('e')) right = Math.min(1, Math.max(point.x, left + minimumSize));
+  if (handle.includes('n')) top = Math.max(0, Math.min(point.y, bottom - minimumSize));
+  if (handle.includes('s')) bottom = Math.min(1, Math.max(point.y, top + minimumSize));
+
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}

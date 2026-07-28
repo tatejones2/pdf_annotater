@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PDFPageProxy } from '../../lib/pdfjs';
-import { domPointToNormalized, rectFromPoints } from '../../lib/coordinates';
+import {
+  domPointToNormalized,
+  rectFromPoints,
+  resizeNormalizedRect,
+  type ResizeHandle,
+} from '../../lib/coordinates';
 import type { Annotation, NormalizedPoint } from '../../types/annotations';
 import { useEditorStore } from '../../stores/useEditorStore';
 
@@ -18,6 +23,11 @@ function AnnotationView({ annotation }: { annotation: Annotation }) {
   const activeTool = useEditorStore((state) => state.activeTool);
   const selected = selectedId === annotation.id;
   const startRef = useRef<{ point: NormalizedPoint; rect: Annotation['rect'] } | null>(null);
+  const resizeRef = useRef<{
+    handle: ResizeHandle;
+    rect: Annotation['rect'];
+    fontSize: number;
+  } | null>(null);
   const style: React.CSSProperties = {
     left: `${annotation.rect.x * 100}%`,
     top: `${annotation.rect.y * 100}%`,
@@ -59,6 +69,37 @@ function AnnotationView({ annotation }: { annotation: Annotation }) {
   };
 
   const className = `annotation annotation-${annotation.type} ${annotation.fontFamily === 'signature' ? 'font-signature' : 'font-sans'} ${selected ? 'selected' : ''} ${annotation.locked ? 'locked' : ''}`;
+
+  const beginResize = (event: React.PointerEvent, handle: ResizeHandle) => {
+    if (annotation.locked) return;
+    event.preventDefault();
+    event.stopPropagation();
+    select(annotation.id);
+    resizeRef.current = {
+      handle,
+      rect: annotation.rect,
+      fontSize: annotation.fontSize ?? 14,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const resize = (event: React.PointerEvent) => {
+    const state = resizeRef.current;
+    if (!state) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const bounds = event.currentTarget.closest('.annotation-layer')?.getBoundingClientRect();
+    if (!bounds) return;
+    const point = domPointToNormalized(event.clientX, event.clientY, bounds);
+    const rect = resizeNormalizedRect(state.rect, point, state.handle);
+    const scalesText = annotation.type === 'text' && /n|s/.test(state.handle);
+    update(annotation.id, {
+      rect,
+      ...(scalesText
+        ? { fontSize: Math.max(8, Math.min(72, state.fontSize * (rect.height / state.rect.height))) }
+        : {}),
+    });
+  };
 
   if (annotation.type === 'pen' && annotation.points) {
     const path = annotation.points.map((point, index) => `${index ? 'L' : 'M'} ${point.x * 100} ${point.y * 100}`).join(' ');
@@ -105,7 +146,23 @@ function AnnotationView({ annotation }: { annotation: Annotation }) {
           <line x1="2" y1="98" x2="96" y2="4" stroke={annotation.color} strokeWidth={annotation.width} markerEnd={`url(#arrow-${annotation.id})`} />
         </svg>
       )}
-      {selected && <><i className="handle nw" /><i className="handle se" /></>}
+      {selected && !annotation.locked && (
+        <div className="resize-handles" aria-label="Resize annotation">
+          {(['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'] as ResizeHandle[]).map((handle) => (
+            <button
+              key={handle}
+              className={`handle ${handle}`}
+              aria-label={`Resize ${handle}`}
+              onPointerDown={(event) => beginResize(event, handle)}
+              onPointerMove={resize}
+              onPointerUp={(event) => {
+                event.stopPropagation();
+                resizeRef.current = null;
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

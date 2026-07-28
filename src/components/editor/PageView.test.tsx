@@ -58,6 +58,7 @@ describe('PageView rendering', () => {
 
   it('focuses a newly placed text annotation so typing works immediately', async () => {
     vi.stubGlobal('IntersectionObserver', IntersectionObserverMock);
+    vi.stubGlobal('PointerEvent', MouseEvent);
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
       {} as CanvasRenderingContext2D,
     );
@@ -96,5 +97,15 @@ describe('PageView rendering', () => {
     expect(useEditorStore.getState().annotations[0]?.color).toBe('#25231f');
     expect(useEditorStore.getState().annotations[0]?.fillColor).toBeNull();
     expect(useEditorStore.getState().annotations[0]?.fontFamily).toBe('signature');
+
+    const original = useEditorStore.getState().annotations[0]!;
+    const southeastHandle = within(container).getByRole('button', { name: 'Resize se' });
+    fireEvent.pointerDown(southeastHandle, { clientX: 304, clientY: 224, pointerId: 2 });
+    fireEvent.pointerMove(southeastHandle, { clientX: 430, clientY: 300, pointerId: 2 });
+    fireEvent.pointerUp(southeastHandle, { clientX: 430, clientY: 300, pointerId: 2 });
+    const resized = useEditorStore.getState().annotations[0]!;
+    expect(resized.rect.width).toBeGreaterThan(original.rect.width);
+    expect(resized.rect.height).toBeGreaterThan(original.rect.height);
+    expect(resized.fontSize).toBeGreaterThan(original.fontSize!);
   });
 });
