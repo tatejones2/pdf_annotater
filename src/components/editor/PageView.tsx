@@ -40,9 +40,10 @@ function AnnotationView({ annotation }: { annotation: Annotation }) {
 
   const beginMove = (event: React.PointerEvent) => {
     if (activeTool !== 'select' || annotation.locked) return;
+    event.preventDefault();
     event.stopPropagation();
     select(annotation.id);
-    const bounds = event.currentTarget.parentElement?.getBoundingClientRect();
+    const bounds = event.currentTarget.closest('.annotation-layer')?.getBoundingClientRect();
     if (!bounds) return;
     startRef.current = {
       point: domPointToNormalized(event.clientX, event.clientY, bounds),
@@ -53,7 +54,7 @@ function AnnotationView({ annotation }: { annotation: Annotation }) {
 
   const move = (event: React.PointerEvent) => {
     if (!startRef.current) return;
-    const bounds = event.currentTarget.parentElement?.getBoundingClientRect();
+    const bounds = event.currentTarget.closest('.annotation-layer')?.getBoundingClientRect();
     if (!bounds) return;
     const point = domPointToNormalized(event.clientX, event.clientY, bounds);
     const dx = point.x - startRef.current.point.x;
@@ -101,6 +102,43 @@ function AnnotationView({ annotation }: { annotation: Annotation }) {
     });
   };
 
+  const updateText = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = event.target.value;
+    if (annotation.type !== 'text') {
+      update(annotation.id, { text });
+      return;
+    }
+    const bounds = event.currentTarget.closest('.annotation-layer')?.getBoundingClientRect();
+    if (!bounds) {
+      update(annotation.id, { text });
+      return;
+    }
+    const fontSize = annotation.fontSize ?? 14;
+    const measuringCanvas = document.createElement('canvas');
+    const context = measuringCanvas.getContext('2d');
+    const lines = text.split('\n');
+    let contentWidth = Math.max(44, ...lines.map((line) => line.length * fontSize * 0.58));
+    if (context && typeof context.measureText === 'function') {
+      context.font = `${fontSize}px ${
+        annotation.fontFamily === 'signature' ? '"Paperwood Signature"' : 'Arial'
+      }`;
+      contentWidth = Math.max(44, ...lines.map((line) => context.measureText(line || ' ').width));
+    }
+    const desiredWidth = Math.min(
+      1 - annotation.rect.x,
+      Math.max(annotation.rect.width, (contentWidth + 12) / bounds.width),
+    );
+    const lineHeight = fontSize * (annotation.fontFamily === 'signature' ? 1.2 : 1.25);
+    const desiredHeight = Math.min(
+      1 - annotation.rect.y,
+      Math.max(annotation.rect.height, (Math.max(1, lines.length) * lineHeight + 6) / bounds.height),
+    );
+    update(annotation.id, {
+      text,
+      rect: { ...annotation.rect, width: desiredWidth, height: desiredHeight },
+    });
+  };
+
   if (annotation.type === 'pen' && annotation.points) {
     const path = annotation.points.map((point, index) => `${index ? 'L' : 'M'} ${point.x * 100} ${point.y * 100}`).join(' ');
     return (
@@ -137,7 +175,7 @@ function AnnotationView({ annotation }: { annotation: Annotation }) {
             select(annotation.id);
           }}
           onFocus={() => select(annotation.id)}
-          onChange={(event) => update(annotation.id, { text: event.target.value })}
+          onChange={updateText}
         />
       )}
       {annotation.type === 'arrow' && (
@@ -147,7 +185,15 @@ function AnnotationView({ annotation }: { annotation: Annotation }) {
         </svg>
       )}
       {selected && !annotation.locked && (
-        <div className="resize-handles" aria-label="Resize annotation">
+        <div className="selection-controls" aria-label="Move or resize annotation">
+          {(['top', 'right', 'bottom', 'left'] as const).map((edge) => (
+            <button
+              key={edge}
+              className={`move-edge ${edge}`}
+              aria-label={`Move annotation from ${edge} edge`}
+              onPointerDown={beginMove}
+            />
+          ))}
           {(['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'] as ResizeHandle[]).map((handle) => (
             <button
               key={handle}
@@ -286,7 +332,12 @@ export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
       add(
         'text',
         pageIndex,
-        { x: start.x, y: start.y, width: 0.3, height: 0.055 },
+        {
+          x: start.x,
+          y: start.y,
+          width: 0.09,
+          height: textFont === 'signature' ? 0.045 : 0.032,
+        },
         {
           text: '',
           color: '#25231f',

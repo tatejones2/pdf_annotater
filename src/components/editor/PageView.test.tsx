@@ -92,11 +92,14 @@ describe('PageView rendering', () => {
     const editor = await within(container).findByLabelText('Annotation text');
     expect(editor).toHaveFocus();
     expect(useEditorStore.getState().activeTool).toBe('select');
+    const initial = useEditorStore.getState().annotations[0]!;
+    expect(initial.rect.width).toBe(0.09);
     fireEvent.change(editor, { target: { value: 'Typed annotation' } });
     expect(useEditorStore.getState().annotations[0]?.text).toBe('Typed annotation');
     expect(useEditorStore.getState().annotations[0]?.color).toBe('#25231f');
     expect(useEditorStore.getState().annotations[0]?.fillColor).toBeNull();
     expect(useEditorStore.getState().annotations[0]?.fontFamily).toBe('signature');
+    expect(useEditorStore.getState().annotations[0]!.rect.width).toBeGreaterThan(initial.rect.width);
 
     const original = useEditorStore.getState().annotations[0]!;
     const southeastHandle = within(container).getByRole('button', { name: 'Resize se' });
@@ -107,5 +110,16 @@ describe('PageView rendering', () => {
     expect(resized.rect.width).toBeGreaterThan(original.rect.width);
     expect(resized.rect.height).toBeGreaterThan(original.rect.height);
     expect(resized.fontSize).toBeGreaterThan(original.fontSize!);
+
+    const topEdge = within(container).getByRole('button', {
+      name: 'Move annotation from top edge',
+    });
+    const beforeMove = useEditorStore.getState().annotations[0]!;
+    fireEvent.pointerDown(topEdge, { clientX: 120, clientY: 180, pointerId: 3 });
+    fireEvent.pointerMove(topEdge, { clientX: 170, clientY: 220, pointerId: 3 });
+    fireEvent.pointerUp(topEdge, { clientX: 170, clientY: 220, pointerId: 3 });
+    const moved = useEditorStore.getState().annotations[0]!;
+    expect(moved.rect.x).toBeGreaterThan(beforeMove.rect.x);
+    expect(moved.rect.y).toBeGreaterThan(beforeMove.rect.y);
   });
 });
