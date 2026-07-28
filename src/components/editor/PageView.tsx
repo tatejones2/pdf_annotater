@@ -169,7 +169,13 @@ function AnnotationView({ annotation }: { annotation: Annotation }) {
           readOnly={annotation.locked}
           value={annotation.text ?? ''}
           placeholder={annotation.type === 'text' ? 'Type here…' : 'Note…'}
-          style={{ color: annotation.color, fontSize: annotation.fontSize ?? 14 }}
+          style={{
+            color: annotation.color,
+            fontSize: annotation.fontSize ?? 14,
+            fontWeight: annotation.bold ? 700 : 400,
+            fontStyle: annotation.italic ? 'italic' : 'normal',
+            textDecoration: annotation.underlineText ? 'underline' : 'none',
+          }}
           onPointerDown={(event) => {
             event.stopPropagation();
             select(annotation.id);
@@ -231,6 +237,9 @@ export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
   const select = useEditorStore((state) => state.select);
   const setTool = useEditorStore((state) => state.setTool);
   const textFont = useEditorStore((state) => state.textFont);
+  const textBold = useEditorStore((state) => state.textBold);
+  const textItalic = useEditorStore((state) => state.textItalic);
+  const textUnderline = useEditorStore((state) => state.textUnderline);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -344,6 +353,9 @@ export function PageView({ page, pageIndex, zoom, onVisible }: Props) {
           fillColor: null,
           fontFamily: textFont,
           fontSize: textFont === 'signature' ? 20 : 14,
+          bold: textBold,
+          italic: textItalic,
+          underlineText: textUnderline,
           opacity: 1,
         },
       );

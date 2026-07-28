@@ -13,6 +13,9 @@ const hex = (value: string) => {
 export async function exportAnnotatedPdf(bytes: Uint8Array, annotations: Annotation[]) {
   const document = await PDFDocument.load(bytes);
   const font = await document.embedFont(StandardFonts.Helvetica);
+  const boldFont = await document.embedFont(StandardFonts.HelveticaBold);
+  const italicFont = await document.embedFont(StandardFonts.HelveticaOblique);
+  const boldItalicFont = await document.embedFont(StandardFonts.HelveticaBoldOblique);
   let signatureFont: PDFFont | undefined;
   if (annotations.some((annotation) => annotation.type === 'text' && annotation.fontFamily === 'signature')) {
     document.registerFontkit(fontkit);
@@ -39,16 +42,46 @@ export async function exportAnnotatedPdf(bytes: Uint8Array, annotations: Annotat
           page.drawRectangle({ ...rect, color: fill, opacity: 0.9, borderColor: color, borderWidth: 1 });
         }
         const text = annotation.text?.trim() || (annotation.type === 'sticky-note' ? 'Note' : 'Text');
-        page.drawText(text.slice(0, 600), {
-          x: rect.x + 4,
-          y: rect.y + rect.height - (annotation.fontSize ?? 12),
+        const textFont = annotation.fontFamily === 'signature'
+          ? signatureFont ?? font
+          : annotation.bold && annotation.italic
+            ? boldItalicFont
+            : annotation.bold
+              ? boldFont
+              : annotation.italic
+                ? italicFont
+                : font;
+        const textSize = annotation.fontSize ?? 12;
+        const textX = rect.x + 4;
+        const textY = rect.y + rect.height - textSize;
+        const drawOptions = {
+          x: textX,
+          y: textY,
           maxWidth: Math.max(20, rect.width - 8),
-          size: annotation.fontSize ?? 12,
-          font: annotation.fontFamily === 'signature' ? signatureFont ?? font : font,
+          size: textSize,
+          font: textFont,
           color,
           opacity: annotation.opacity,
-          lineHeight: (annotation.fontSize ?? 12) * 1.2,
-        });
+          lineHeight: textSize * 1.2,
+        };
+        page.drawText(text.slice(0, 600), drawOptions);
+        if (annotation.fontFamily === 'signature' && annotation.bold) {
+          page.drawText(text.slice(0, 600), { ...drawOptions, x: textX + 0.45 });
+        }
+        if (annotation.underlineText) {
+          const firstLine = text.split('\n')[0] ?? '';
+          const textWidth = Math.min(
+            rect.width - 8,
+            textFont.widthOfTextAtSize(firstLine, textSize),
+          );
+          page.drawLine({
+            start: { x: textX, y: textY - 2 },
+            end: { x: textX + Math.max(0, textWidth), y: textY - 2 },
+            thickness: Math.max(0.7, textSize / 18),
+            color,
+            opacity: annotation.opacity,
+          });
+        }
       } else if (annotation.type === 'highlight') {
         page.drawRectangle({ ...rect, color: fill, opacity: annotation.opacity });
       } else if (annotation.type === 'underline') {

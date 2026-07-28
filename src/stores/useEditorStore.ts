@@ -15,9 +15,12 @@ type EditorState = {
   opacity: number;
   strokeWidth: number;
   textFont: 'sans' | 'signature';
+  textBold: boolean;
+  textItalic: boolean;
+  textUnderline: boolean;
   dirty: boolean;
   setTool: (tool: Tool) => void;
-  setStyle: (style: Partial<Pick<EditorState, 'color' | 'fillColor' | 'opacity' | 'strokeWidth' | 'textFont'>>) => void;
+  setStyle: (style: Partial<Pick<EditorState, 'color' | 'fillColor' | 'opacity' | 'strokeWidth' | 'textFont' | 'textBold' | 'textItalic' | 'textUnderline'>>) => void;
   add: (type: AnnotationType, pageIndex: number, rect: NormalizedRect, extra?: Partial<Annotation>) => string;
   update: (id: string, patch: Partial<Annotation>) => void;
   remove: (id: string) => void;
@@ -44,6 +47,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   opacity: 0.55,
   strokeWidth: 3,
   textFont: 'sans',
+  textBold: false,
+  textItalic: false,
+  textUnderline: false,
   dirty: false,
   setTool: (activeTool) => set({ activeTool }),
   setStyle: (style) => set(style),

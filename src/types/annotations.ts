@@ -37,6 +37,9 @@ export type Annotation = {
   width: number;
   fontSize?: number;
   fontFamily?: 'sans' | 'signature';
+  bold?: boolean;
+  italic?: boolean;
+  underlineText?: boolean;
   locked: boolean;
   zIndex: number;
   createdAt: string;
@@ -66,6 +69,9 @@ export const annotationSchema: z.ZodType<Annotation> = z.object({
   width: z.number().positive(),
   fontSize: z.number().positive().optional(),
   fontFamily: z.enum(['sans', 'signature']).optional(),
+  bold: z.boolean().optional(),
+  italic: z.boolean().optional(),
+  underlineText: z.boolean().optional(),
   locked: z.boolean(),
   zIndex: z.number(),
   createdAt: z.string(),

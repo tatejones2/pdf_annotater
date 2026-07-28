@@ -119,6 +119,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .font-style-control button { border: 1px solid var(--border); background: var(--raised); border-radius: 6px; padding: 5px 8px; font-size: 10px; cursor: pointer; }
 .font-style-control button.active { border-color: var(--teal); background: #e4eee9; color: var(--teal-dark); }
 .font-style-control .signature-option { font-family: "Paperwood Signature", cursive; font-size: 15px; padding-block: 2px; }
+.text-format-control { display: flex; align-items: center; gap: 4px; }
+.text-format-control button { width: 28px; height: 28px; display: grid; place-items: center; padding: 0; border: 1px solid var(--border); background: var(--raised); border-radius: 6px; cursor: pointer; }
+.text-format-control button.active { border-color: var(--teal); background: #e4eee9; color: var(--teal-dark); }
 .swatches { display: flex; gap: 5px; }
 .swatches button { width: 18px; height: 18px; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 0 1px #aaa; cursor: pointer; }
 .swatches button.selected { box-shadow: 0 0 0 2px var(--ink); }
