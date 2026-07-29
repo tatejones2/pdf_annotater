@@ -168,19 +168,21 @@ const download = (data: BlobPart, name: string) => {
 export function PageOrganizer({ onClose }: Props) {
   const [source, setSource] = useState<LoadedPdf | null>(null);
   const [destination, setDestination] = useState<LoadedPdf | null>(null);
+  const sourceRef = useRef<LoadedPdf | null>(null);
+  const destinationRef = useRef<LoadedPdf | null>(null);
   const [sourcePage, setSourcePage] = useState(1);
   const [destinationPage, setDestinationPage] = useState(1);
   const [mode, setMode] = useState<PageTransferMode>('replace');
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => () => {
-    void source?.document.cleanup();
-  }, [source]);
+  sourceRef.current = source;
+  destinationRef.current = destination;
 
   useEffect(() => () => {
-    void destination?.document.cleanup();
-  }, [destination]);
+    void sourceRef.current?.document.cleanup();
+    void destinationRef.current?.document.cleanup();
+  }, []);
 
   const loadPdf = async (file: File, slot: 'source' | 'destination') => {
     setError(null);
@@ -236,6 +238,14 @@ export function PageOrganizer({ onClose }: Props) {
     }
   };
 
+  const swapDocuments = () => {
+    if (!source || !destination) return;
+    setSource(destination);
+    setDestination(source);
+    setSourcePage(destinationPage);
+    setDestinationPage(sourcePage);
+  };
+
   const actionCopy = mode === 'replace'
     ? `Replace page ${destinationPage}`
     : `Insert ${mode} page ${destinationPage}`;
@@ -270,10 +280,17 @@ export function PageOrganizer({ onClose }: Props) {
           onFile={(file) => void loadPdf(file, 'source')}
         />
 
-        <div className="organizer-transfer">
+        <button
+          className="organizer-transfer"
+          onClick={swapDocuments}
+          disabled={!source || !destination}
+          aria-label="Swap source and destination PDFs"
+          title={source && destination ? 'Swap source and destination PDFs' : 'Choose both PDFs to swap them'}
+        >
           <span><ArrowRightLeft size={21} /></span>
           <strong>Transfer</strong>
-        </div>
+          <small>Swap PDFs</small>
+        </button>
 
         <PdfPicker
           label="02 · Destination"

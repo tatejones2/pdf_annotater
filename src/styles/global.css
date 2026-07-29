@@ -97,8 +97,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .organizer-preview canvas { max-width: calc(100% - 28px); max-height: 280px; background: white; box-shadow: 0 5px 18px rgba(0,0,0,.16); }
 .page-number-field { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 11px; font-weight: 750; }
 .page-number-field > div { display: flex; align-items: center; gap: 7px; color: var(--muted); }.page-number-field input { width: 62px; height: 34px; border: 1px solid var(--border); border-radius: 7px; background: white; text-align: center; }
-.organizer-transfer { display: flex; flex-direction: column; align-items: center; gap: 7px; color: var(--teal); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+.organizer-transfer { padding: 6px; border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 5px; color: var(--teal); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; cursor: pointer; border-radius: 10px; }
 .organizer-transfer > span { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; background: #e1ebe6; }
+.organizer-transfer small { color: var(--muted); font-size: 8px; font-weight: 750; letter-spacing: .04em; }
+.organizer-transfer:not(:disabled):hover { background: #e8e2d7; }.organizer-transfer:not(:disabled):hover > span { background: var(--teal); color: white; }
+.organizer-transfer:disabled { opacity: .42; cursor: default; }
 .organizer-action-panel { max-width: 1060px; margin: 26px auto 0; padding: 25px; border: 1px solid var(--border); border-radius: 15px; background: var(--raised); }
 .organizer-action-panel h2 { margin: 7px 0 18px; font-size: 20px; }
 .mode-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
