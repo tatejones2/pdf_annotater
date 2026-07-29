@@ -5,6 +5,7 @@ import { Editor } from '../components/editor/Editor';
 import { APP_CONFIG } from './config';
 import { clearRecentProject, getRecentProject, saveRecentProject, type SavedProject } from '../lib/persistence';
 import { useEditorStore } from '../stores/useEditorStore';
+import { PageOrganizer } from '../components/organizer/PageOrganizer';
 
 type ActiveDocument = {
   fileName: string;
@@ -19,6 +20,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recent, setRecent] = useState<SavedProject | undefined>();
+  const [organizing, setOrganizing] = useState(false);
   const viewRef = useRef({ zoom: 1, currentPage: 1 });
   const annotations = useEditorStore((state) => state.annotations);
   const dirty = useEditorStore((state) => state.dirty);
@@ -86,6 +88,7 @@ export default function App() {
   };
 
   if (loading) return <main className="loading-screen"><div className="loading-mark" /><strong>Opening your document…</strong><span>Everything is staying on this device.</span></main>;
+  if (organizing) return <PageOrganizer onClose={() => setOrganizing(false)} />;
   if (!active) return (
     <Welcome
       onOpen={(file) => void openFile(file)}
@@ -93,6 +96,7 @@ export default function App() {
       recentName={recent?.fileName}
       onRestore={recent ? () => void loadBytes(new Uint8Array(recent.bytes), recent.fileName, recent) : undefined}
       onDismissRecent={() => { void clearRecentProject(); setRecent(undefined); }}
+      onOrganize={() => setOrganizing(true)}
     />
   );
 

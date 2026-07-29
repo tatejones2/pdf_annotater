@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { FileText, Highlighter, LockKeyhole, MessageSquareText, PenLine, Upload } from 'lucide-react';
+import { ArrowRightLeft, FileText, Highlighter, LockKeyhole, MessageSquareText, PenLine, Upload } from 'lucide-react';
 import { APP_CONFIG } from '../../app/config';
 import { Logo } from '../common/Logo';
 
@@ -9,9 +9,10 @@ type Props = {
   recentName?: string;
   onRestore?: () => void;
   onDismissRecent?: () => void;
+  onOrganize: () => void;
 };
 
-export function Welcome({ onOpen, error, recentName, onRestore, onDismissRecent }: Props) {
+export function Welcome({ onOpen, error, recentName, onRestore, onDismissRecent, onOrganize }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
 
@@ -90,6 +91,15 @@ export function Welcome({ onOpen, error, recentName, onRestore, onDismissRecent 
           <button className="icon-button" onClick={onDismissRecent} aria-label="Dismiss saved project">×</button>
         </aside>
       )}
+
+      <section className="organize-entry">
+        <span className="organize-entry-icon"><ArrowRightLeft size={23} /></span>
+        <div>
+          <strong>Need to move pages between PDFs?</strong>
+          <p>Copy, insert, or replace pages using two documents.</p>
+        </div>
+        <button onClick={onOrganize}>Open page organizer</button>
+      </section>
 
       <section className="privacy-strip">
         <span className="privacy-number">01</span>
