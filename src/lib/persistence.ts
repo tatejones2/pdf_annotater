@@ -16,6 +16,9 @@ const database = new Dexie('paperwood') as Dexie & {
 };
 database.version(1).stores({ projects: 'id, updatedAt' });
 
-export const saveRecentProject = (project: SavedProject) => database.projects.put(project);
-export const getRecentProject = () => database.projects.orderBy('updatedAt').last();
-export const clearRecentProject = () => database.projects.clear();
+export const getLegacyProject = () => database.projects.orderBy('updatedAt').last();
+
+export const clearLegacyProject = async () => {
+  await database.close();
+  await Dexie.delete('paperwood');
+};

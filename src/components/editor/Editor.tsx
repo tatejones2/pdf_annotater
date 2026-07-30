@@ -7,6 +7,7 @@ import {
   FileDown,
   FileUp,
   HelpCircle,
+  LockKeyhole,
   Menu,
   PanelLeftClose,
   Redo2,
@@ -32,10 +33,7 @@ type Props = {
   document: PDFDocumentProxy;
   bytes: Uint8Array;
   fileName: string;
-  initialZoom?: number;
-  initialPage?: number;
   onClose: () => void;
-  onViewChange: (zoom: number, page: number) => void;
 };
 
 const download = (data: BlobPart, name: string, type: string) => {
@@ -47,10 +45,10 @@ const download = (data: BlobPart, name: string, type: string) => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
-export function Editor({ document, bytes, fileName, initialZoom = 1, initialPage = 1, onClose, onViewChange }: Props) {
+export function Editor({ document, bytes, fileName, onClose }: Props) {
   const [pages, setPages] = useState<PDFPageProxy[]>([]);
-  const [zoom, setZoom] = useState(initialZoom);
-  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [zoom, setZoom] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -59,7 +57,6 @@ export function Editor({ document, bytes, fileName, initialZoom = 1, initialPage
   const [toast, setToast] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const annotations = useEditorStore((state) => state.annotations);
-  const dirty = useEditorStore((state) => state.dirty);
   const past = useEditorStore((state) => state.past);
   const future = useEditorStore((state) => state.future);
   const undo = useEditorStore((state) => state.undo);
@@ -72,8 +69,6 @@ export function Editor({ document, bytes, fileName, initialZoom = 1, initialPage
   useEffect(() => {
     void Promise.all(Array.from({ length: document.numPages }, (_, index) => document.getPage(index + 1))).then(setPages);
   }, [document]);
-
-  useEffect(() => onViewChange(zoom, currentPage), [currentPage, onViewChange, zoom]);
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
@@ -158,7 +153,11 @@ export function Editor({ document, bytes, fileName, initialZoom = 1, initialPage
         <Logo compact />
         <button className="sidebar-toggle" onClick={() => setLeftOpen((value) => !value)} aria-label="Toggle thumbnails"><PanelLeftClose size={18} /></button>
         <div className="file-meta" title={fileName}><strong>{fileName}</strong><span>{document.numPages} pages · {(bytes.byteLength / 1024 / 1024).toFixed(1)} MB</span></div>
-        <div className="save-status" aria-live="polite"><span className={dirty ? 'saving' : ''} />{dirty ? 'Saving…' : 'Saved locally'}</div>
+        <div className="save-status private-status" aria-live="polite">
+          <LockKeyhole size={13} />
+          <span />
+          Private session · Not stored
+        </div>
         <div className="topbar-actions">
           <button className="icon-button" disabled={!past.length} onClick={undo} aria-label="Undo"><Undo2 size={18} /></button>
           <button className="icon-button" disabled={!future.length} onClick={redo} aria-label="Redo"><Redo2 size={18} /></button>

@@ -1,18 +1,29 @@
 import { useRef, useState } from 'react';
-import { ArrowRightLeft, FileText, Highlighter, LockKeyhole, MessageSquareText, PenLine, Upload } from 'lucide-react';
+import { ArrowRightLeft, Download, FileText, Highlighter, LockKeyhole, MessageSquareText, PenLine, Trash2, Upload } from 'lucide-react';
 import { APP_CONFIG } from '../../app/config';
 import { Logo } from '../common/Logo';
 
 type Props = {
   onOpen: (file: File) => void;
   error: string | null;
+  notice?: string | null;
   recentName?: string;
-  onRestore?: () => void;
+  onDownloadRecent?: () => void;
   onDismissRecent?: () => void;
   onOrganize: () => void;
+  onShowSecurity: () => void;
 };
 
-export function Welcome({ onOpen, error, recentName, onRestore, onDismissRecent, onOrganize }: Props) {
+export function Welcome({
+  onOpen,
+  error,
+  notice,
+  recentName,
+  onDownloadRecent,
+  onDismissRecent,
+  onOrganize,
+  onShowSecurity,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
 
@@ -83,12 +94,16 @@ export function Welcome({ onOpen, error, recentName, onRestore, onDismissRecent,
       </section>
 
       {error && <div className="welcome-error" role="alert">{error}</div>}
-      {recentName && onRestore && (
-        <aside className="restore-card">
+      {notice && <div className="welcome-notice" role="status">{notice}</div>}
+      {recentName && onDownloadRecent && (
+        <aside className="legacy-data-card">
           <FileText size={20} />
-          <span><strong>Continue where you left off?</strong><small>{recentName}</small></span>
-          <button onClick={onRestore}>Reopen</button>
-          <button className="icon-button" onClick={onDismissRecent} aria-label="Dismiss saved project">×</button>
+          <span>
+            <strong>Older unencrypted draft found</strong>
+            <small>{recentName} · Download it or permanently remove it from this browser.</small>
+          </span>
+          <button onClick={onDownloadRecent}><Download size={15} /> Download</button>
+          <button className="danger-button" onClick={onDismissRecent}><Trash2 size={15} /> Delete local data</button>
         </aside>
       )}
 
@@ -103,7 +118,11 @@ export function Welcome({ onOpen, error, recentName, onRestore, onDismissRecent,
 
       <section className="privacy-strip">
         <span className="privacy-number">01</span>
-        <div><strong>Your document stays on this device.</strong><p>Paperwood works entirely in your browser. No accounts, no uploads, no tracking.</p></div>
+        <div>
+          <strong>Private session · Nothing is saved automatically.</strong>
+          <p>Paperwood processes documents in this browser. Export before closing or refreshing.</p>
+          <button className="privacy-link" onClick={onShowSecurity}>Review safe-use guidance</button>
+        </div>
         <LockKeyhole size={28} />
       </section>
 

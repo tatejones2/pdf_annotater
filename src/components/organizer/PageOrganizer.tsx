@@ -176,12 +176,21 @@ export function PageOrganizer({ onClose }: Props) {
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  sourceRef.current = source;
-  destinationRef.current = destination;
+  useEffect(() => {
+    sourceRef.current = source;
+  }, [source]);
+
+  useEffect(() => {
+    destinationRef.current = destination;
+  }, [destination]);
 
   useEffect(() => () => {
-    void sourceRef.current?.document.cleanup();
-    void destinationRef.current?.document.cleanup();
+    const sourceDocument = sourceRef.current;
+    const destinationDocument = destinationRef.current;
+    void sourceDocument?.document.cleanup();
+    void destinationDocument?.document.cleanup();
+    sourceDocument?.bytes.fill(0);
+    destinationDocument?.bytes.fill(0);
   }, []);
 
   const loadPdf = async (file: File, slot: 'source' | 'destination') => {
@@ -195,20 +204,24 @@ export function PageOrganizer({ onClose }: Props) {
       return;
     }
 
+    let bytes: Uint8Array | undefined;
     try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
+      bytes = new Uint8Array(await file.arrayBuffer());
       const document = await getDocument({ data: bytes.slice() }).promise;
       const loaded = { file, bytes, document };
       if (slot === 'source') {
         void source?.document.cleanup();
+        source?.bytes.fill(0);
         setSource(loaded);
         setSourcePage(1);
       } else {
         void destination?.document.cleanup();
+        destination?.bytes.fill(0);
         setDestination(loaded);
         setDestinationPage(1);
       }
     } catch (reason) {
+      bytes?.fill(0);
       setError(
         reason instanceof Error && /password/i.test(reason.message)
           ? 'This PDF is password protected. Unlock it before organizing its pages.'
